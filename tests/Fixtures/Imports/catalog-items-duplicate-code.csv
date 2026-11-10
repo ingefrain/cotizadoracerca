@@ -1,0 +1,5 @@
+catalog_slug,code,name,slug,description_markdown,sort_order,is_active
+publico,A,Nuevo,,,,1
+publico,A,Otro,,,,1
+publico,,Existente,,,,1
+inactivo,,Ajeno,,,,1

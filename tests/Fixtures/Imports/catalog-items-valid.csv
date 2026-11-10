@@ -1,0 +1,3 @@
+catalog_slug;code;name;slug;description_markdown;sort_order;is_active
+publico;001;Café;;"**Hola**
+<script>";2;false

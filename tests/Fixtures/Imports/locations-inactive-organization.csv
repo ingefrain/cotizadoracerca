@@ -1,0 +1,2 @@
+organization_slug,name,code,email,phone,address_line_1,address_line_2,city,state,postal_code,country_code,latitude,longitude,is_active
+organizacion-norte,Otra,B,,,,,,,,mx,19,-99,true
