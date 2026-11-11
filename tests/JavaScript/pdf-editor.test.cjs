@@ -41,7 +41,7 @@ function mount(fetchImpl = async () => ({ ok: true, headers: new Headers({ 'Cont
     };
     vm.runInNewContext(script, { document, window, URL, TextEncoder, AbortController, clearTimeout, TypeError,
         fetch: (...args) => { requests.push(args); return fetchImpl(...args); } });
-    const input = value => { node('textarea').value = value; node('textarea').dispatchEvent(new Event('input')); };
+    const input = value => { node('textarea[name="markdown"]').value = value; node('textarea[name="markdown"]').dispatchEvent(new Event('input')); };
     const submit = () => node('[data-pdf-form]').dispatchEvent(new Event('submit', { cancelable: true }));
     return { node, input, submit, tabs, media, window, urls, revoked, downloads, requests, notifications };
 }
@@ -53,7 +53,7 @@ test('typing never generates a PDF; submit preserves the exact source and uses C
     assert.equal(ui.requests.length, 1);
     assert.equal(ui.requests[0][1].body, source);
     assert.equal(ui.requests[0][1].headers['X-CSRF-TOKEN'], 'csrf-test');
-    assert.equal(ui.node('textarea').value, source);
+    assert.equal(ui.node('textarea[name="markdown"]').value, source);
     assert.equal(ui.node('[data-pdf-frame]').hidden, false);
 });
 test('download reuses the preview bytes without another request', async () => {
@@ -76,7 +76,7 @@ test('server errors keep the Markdown and the previous PDF', async () => {
     const ui = mount(async () => fail ? { ok: false, status: 503 } : { ok: true, headers: new Headers({ 'Content-Type': 'application/pdf' }), blob: async () => new Blob(['%PDF-old']) });
     ui.input('Primero'); ui.submit(); await settle(); const previous = ui.node('[data-pdf-frame]').src;
     fail = true; ui.input('Edición sin perder'); ui.submit(); await settle();
-    assert.equal(ui.node('textarea').value, 'Edición sin perder');
+    assert.equal(ui.node('textarea[name="markdown"]').value, 'Edición sin perder');
     assert.equal(ui.node('[data-pdf-frame]').src, previous);
     assert.equal(ui.node('[data-pdf-error]').hidden, false);
     assert.equal(ui.node('[data-pdf-generate]').disabled, false);
@@ -88,11 +88,11 @@ test('edits while generating remain dirty and duplicate submissions are suppress
     assert.equal(ui.requests.length, 1);
     finish({ ok: true, headers: new Headers({ 'Content-Type': 'application/pdf' }), blob: async () => new Blob(['%PDF-capture']) });
     await settle(); assert.equal(ui.node('[data-pdf-stale]').hidden, false);
-    assert.equal(ui.node('textarea').value, 'Cambio durante generación');
+    assert.equal(ui.node('textarea[name="markdown"]').value, 'Cambio durante generación');
 });
 test('input limits count UTF-8 bytes and never truncate the editor', () => {
     const ui = mount(); const source = 'é'.repeat(51201); ui.input(source); ui.submit();
-    assert.equal(ui.requests.length, 0); assert.equal(ui.node('textarea').value, source);
+    assert.equal(ui.requests.length, 0); assert.equal(ui.node('textarea[name="markdown"]').value, source);
     assert.equal(ui.node('[data-pdf-error]').hidden, false);
 });
 test('replacing and leaving release Blob URLs; back/forward restores the same Blob', async () => {

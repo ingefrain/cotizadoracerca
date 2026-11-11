@@ -8,6 +8,9 @@ class BasePermissions
     public const DEFINITIONS = [
         'dashboard.view' => 'Ver el resumen administrativo',
         'pdf.preview' => 'Editar Markdown y generar vistas previas PDF',
+        'pdf-documents.view' => 'Consultar borradores Markdown internos',
+        'pdf-documents.create' => 'Crear borradores Markdown',
+        'pdf-documents.update' => 'Editar borradores Markdown internos',
         'reports.view' => 'Consultar reportes administrativos',
         'reports.export' => 'Exportar reportes administrativos',
         'imports.view' => 'Consultar importaciones propias',

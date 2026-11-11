@@ -6,7 +6,10 @@
 .pdf-source-panel { display: flex; flex-direction: column; gap: 1rem; }
 .pdf-source-panel .markdown-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .pdf-source-panel .markdown-panes { flex: 1; }
-.pdf-source-panel textarea { min-height: 500px; height: 100%; resize: vertical; line-height: 1.6; tab-size: 4; }
+.pdf-source-panel textarea[name="markdown"] { min-height: 500px; height: 100%; resize: vertical; line-height: 1.6; tab-size: 4; }
+.draft-metadata { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.draft-save-actions { display: flex; flex-direction: column; gap: .5rem; align-items: flex-end; }
+.pdf-source-panel textarea[name="notes"] { min-height: 5rem; resize: vertical; }
 .pdf-editor-actions, .pdf-preview-heading { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; }
 .pdf-preview-heading { margin-bottom: .75rem; }
 .pdf-preview-heading h2 { margin: 0; font-size: 1.05rem; }
@@ -22,6 +25,8 @@
     .pdf-workbench { grid-template-columns: minmax(0, 1fr); }
     .pdf-mobile-switch { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .pdf-mobile-switch [aria-pressed="true"] { color: var(--brand-primary-dark); background: var(--brand-primary-soft); border-color: var(--brand-primary); }
-    .pdf-source-panel textarea { min-height: 55vh; }
+    .pdf-source-panel textarea[name="markdown"] { min-height: 55vh; }
+    .draft-metadata { grid-template-columns: minmax(0, 1fr); }
+    .draft-save-actions { align-items: flex-start; }
     .pdf-preview-surface { min-height: 420px; height: 70vh; }
 }

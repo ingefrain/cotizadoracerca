@@ -8,18 +8,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
-use Illuminate\View\View;
 use Throwable;
 
 final class PdfPreviewController
 {
-    public function index(Request $request, PdfPreviewAccess $access): View
-    {
-        abort_unless($access->allows($request->user()), 403);
-
-        return view('admin.pdf.editor');
-    }
-
     public function render(Request $request, PdfPreviewAccess $access, CorporatePdfRenderer $renderer): Response|JsonResponse
     {
         abort_unless($access->allows($request->user()), 403);

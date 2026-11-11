@@ -37,7 +37,7 @@ class PdfPreviewTest extends TestCase
 
     public function test_editor_reuses_markdown_without_html_preview_and_exposes_the_menu(): void
     {
-        $this->actingAsAdmin()->get(route('admin.pdf.index'))->assertOk()
+        $this->actingAsAdmin()->get(route('admin.pdf.create'))->assertOk()
             ->assertSee('Documentos PDF')->assertSee('data-markdown-editor', false)
             ->assertSee('data-pdf-frame', false)->assertSee('Actualizar vista previa')
             ->assertSee('Descargar PDF')->assertSee(':::page-break')

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\CatalogItemController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\Admin\FormattedDocumentController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\LocationController;
@@ -45,9 +46,14 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     });
 
     Route::middleware(['auth', 'impersonation', 'account.active', 'session.current'])->group(function (): void {
-        Route::get('/pdf-documents', [PdfPreviewController::class, 'index'])->name('pdf.index');
+        Route::get('/pdf-documents', [FormattedDocumentController::class, 'index'])->name('pdf.index');
+        Route::get('/pdf-documents/create', [FormattedDocumentController::class, 'create'])->name('pdf.create');
+        Route::post('/pdf-documents', [FormattedDocumentController::class, 'store'])->name('pdf.store');
         Route::post('/pdf-documents/preview', [PdfPreviewController::class, 'render'])
             ->middleware(['can:pdf.preview', 'throttle:pdf-preview'])->name('pdf.preview');
+        Route::get('/pdf-documents/{document:uuid}', [FormattedDocumentController::class, 'show'])->whereUuid('document')->name('pdf.show');
+        Route::get('/pdf-documents/{document:uuid}/edit', [FormattedDocumentController::class, 'edit'])->whereUuid('document')->name('pdf.edit');
+        Route::put('/pdf-documents/{document:uuid}', [FormattedDocumentController::class, 'update'])->whereUuid('document')->name('pdf.update');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         foreach (array_keys(config('admin_reports.reports')) as $key) {
             Route::get('/reports/'.$key, [ReportController::class, 'show'])

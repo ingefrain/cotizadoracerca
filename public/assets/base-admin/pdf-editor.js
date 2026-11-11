@@ -1,7 +1,7 @@
 (() => {
     const root = document.querySelector('[data-pdf-editor]');
     if (!root) return;
-    const input = root.querySelector('textarea');
+    const input = root.querySelector('textarea[name="markdown"]');
     const form = root.querySelector('[data-pdf-form]');
     const generate = root.querySelector('[data-pdf-generate]');
     const refresh = root.querySelector('[data-pdf-refresh]');
@@ -16,6 +16,7 @@
     const size = root.querySelector('[data-pdf-size]');
     const narrow = window.matchMedia('(max-width: 1000px)');
     const maxBytes = Number(root.dataset.maxBytes);
+    const allowed = root.dataset.previewAllowed !== 'false';
     let panel = 'editor';
     let url;
     let blob;
@@ -52,7 +53,7 @@
         empty.hidden = true;
     }
     async function render() {
-        if (pending) return;
+        if (pending || !allowed) return;
         const source = input.value;
         error.hidden = true;
         if (!source.trim()) {
@@ -135,5 +136,6 @@
     window.addEventListener('pagehide', () => { pending?.abort('leaving'); releaseUrl(); });
     window.addEventListener('pageshow', event => { if (event.persisted && blob) { displayBlob(); updateState(); } });
     showPanel();
+    generate.disabled = refresh.disabled = !allowed;
     updateState();
 })();
