@@ -22,6 +22,7 @@
     let blob;
     let renderedSource;
     let pending;
+    let failed = false;
 
     function showPanel(next = panel) {
         panel = next;
@@ -36,10 +37,15 @@
         size.textContent = `${(bytes / 1024).toFixed(1)} / ${maxBytes / 1024} KiB`;
         stale.hidden = !blob || input.value === renderedSource;
         download.disabled = !url || Boolean(pending);
+        const state = pending ? 'generating' : failed ? 'error' : !blob ? 'empty' : input.value === renderedSource ? 'current' : 'stale';
+        status.dataset.state = state;
+        status.textContent = { generating: 'Generando PDF', error: 'Error al generar', empty: 'Sin vista previa', current: 'Vista previa actualizada', stale: 'Vista previa desactualizada' }[state];
     }
     function showError(message) {
         errorMessage.textContent = message;
         error.hidden = false;
+        failed = true;
+        updateState();
     }
     function releaseUrl() {
         if (url) URL.revokeObjectURL(url);
@@ -56,6 +62,7 @@
         if (pending || !allowed) return;
         const source = input.value;
         error.hidden = true;
+        failed = false;
         if (!source.trim()) {
             showError('Escribe contenido Markdown antes de generar el PDF.');
             showPanel('editor');
@@ -71,7 +78,6 @@
         generate.disabled = refresh.disabled = true;
         generate.textContent = 'Generando PDF…';
         surface.setAttribute('aria-busy', 'true');
-        status.textContent = 'Generando vista previa…';
         updateState();
         const timeout = window.setTimeout(() => controller.abort('timeout'), 60000);
         try {
@@ -100,7 +106,6 @@
             blob = nextBlob;
             renderedSource = source;
             displayBlob();
-            status.textContent = 'Vista previa generada. Puedes recorrer sus páginas o descargarla.';
             showPanel('preview');
         } catch (failure) {
             if (controller.signal.reason === 'leaving') return;
@@ -108,7 +113,6 @@
                 ? 'La generación tardó demasiado. Tu Markdown y la vista previa anterior se conservan; vuelve a intentarlo.'
                 : failure.message === 'Failed to fetch' || failure instanceof TypeError
                     ? 'No se pudo conectar con el servidor. Tu Markdown se conserva.' : failure.message);
-            status.textContent = blob ? 'Se conserva la última vista previa generada.' : 'No se pudo generar la vista previa.';
         } finally {
             clearTimeout(timeout);
             pending = undefined;

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Editor de documento')
+@section('title', $document->exists ? 'Editar documento' : 'Nuevo documento')
 
 @push('admin-styles')
     <link rel="stylesheet" href="{{ asset('assets/base-admin/pdf-editor.css') }}?v={{ filemtime(public_path('assets/base-admin/pdf-editor.css')) }}">
@@ -14,24 +14,27 @@
     data-save-url="{{ $document->exists ? route('admin.pdf.update', $document) : route('admin.pdf.store') }}"
     data-saved="{{ $document->exists ? 'true' : 'false' }}">
     <script type="application/json" data-draft-initial>@json($initialDraft)</script>
-    <div class="page-actions"><a class="button button-secondary button-small" href="{{ route('admin.pdf.index') }}">Volver a documentos</a></div>
-    <p class="muted">Escribe o pega tu documento y actualiza la vista previa para revisar sus páginas.</p>
-    <p class="field-hint">Guardar conserva el título, Markdown y notas. Actualizar vista previa genera el PDF del contenido actual, aunque todavía no lo hayas guardado.</p>
+    <div class="pdf-editor-navigation"><a class="button button-secondary button-small" data-draft-back href="{{ route('admin.pdf.index') }}"><span aria-hidden="true">←</span> Volver a documentos</a></div>
+    <section class="document-context" aria-label="Contexto del documento">
+        <div class="document-context-heading"><h2 data-draft-document-title>{{ $document->exists ? $document->title : 'Documento nuevo' }}</h2><span class="badge badge-neutral">Borrador</span></div>
+        <p data-draft-context>{{ $document->exists ? 'Puedes modificar el borrador, guardar tus cambios y actualizar la vista previa PDF.' : 'Crea tu documento, guárdalo como borrador y genera una vista previa PDF cuando lo necesites.' }}</p>
+    </section>
     <section class="panel draft-metadata" aria-label="Datos del borrador">
         <div class="field">
-            <label for="draft-title">Título</label>
-            <input id="draft-title" name="title" value="{{ $document->title }}" maxlength="200" required aria-describedby="draft-title-help draft-title-error">
+            <div class="draft-title-label"><label for="draft-title">Título <span aria-hidden="true">*</span></label>
+                <span class="document-status" data-draft-status data-state="{{ $document->exists ? 'saved' : 'new' }}" role="status" aria-live="polite">{{ $document->exists ? 'Guardado' : 'Sin guardar' }}</span>
+            </div>
+            <div class="draft-title-controls">
+                <input id="draft-title" name="title" value="{{ $document->title }}" maxlength="200" required aria-describedby="draft-title-help draft-title-error">
+                <button class="button button-primary" type="button" data-draft-save>Guardar borrador</button>
+            </div>
             <p id="draft-title-help" class="field-hint">Identifica el documento en el listado. Hasta 200 caracteres.</p>
             <p id="draft-title-error" class="field-hint" data-draft-field-error="title" hidden></p>
-        </div>
-        <div class="draft-save-actions">
-            <span class="field-hint" data-draft-status role="status" aria-live="polite">{{ $document->exists ? 'Sin cambios pendientes.' : 'Documento nuevo, aún sin guardar.' }}</span>
-            <button class="button button-primary" type="button" data-draft-save>Guardar borrador</button>
         </div>
     </section>
     <x-admin.alert variant="error" data-draft-error hidden><span data-draft-error-message></span></x-admin.alert>
     @unless($canPreview)<x-admin.alert variant="info">Tu cuenta puede trabajar con borradores, pero no tiene permiso para generar vistas previas PDF.</x-admin.alert>@endunless
-    <noscript><x-admin.alert variant="warning">Activa JavaScript para generar y visualizar el PDF.</x-admin.alert></noscript>
+    <noscript><x-admin.alert variant="warning">Activa JavaScript para guardar el borrador y generar la vista previa PDF.</x-admin.alert></noscript>
 
     <div class="pdf-mobile-switch" role="group" aria-label="Área de trabajo">
         <button class="button button-secondary" type="button" data-pdf-panel="editor" aria-controls="pdf-source-panel" aria-pressed="true">Editar Markdown</button>
@@ -49,12 +52,6 @@
             <x-admin.markdown-editor name="markdown" label="Contenido Markdown" :value="$document->body_markdown ?? ''" :preview="false" :rows="24"
                 help="Hasta 100 KiB de texto. Para comenzar otra página, escribe :::page-break en una línea independiente." />
             <p id="draft-markdown-error" class="field-hint" data-draft-field-error="body_markdown" hidden></p>
-            <div class="field">
-                <label for="draft-notes">Notas internas (opcional)</label>
-                <textarea id="draft-notes" name="notes" rows="3" maxlength="5000" aria-describedby="draft-notes-help draft-notes-error">{{ "\n".$document->notes }}</textarea>
-                <p id="draft-notes-help" class="field-hint">Solo para consulta interna. No se incluyen en el PDF. Hasta 5000 caracteres.</p>
-                <p id="draft-notes-error" class="field-hint" data-draft-field-error="notes" hidden></p>
-            </div>
             <div class="pdf-editor-actions">
                 <span class="field-hint" data-pdf-size>0 / 100 KiB</span>
                 <button class="button button-secondary" type="submit" data-pdf-generate @disabled(! $canPreview)>Actualizar vista previa</button>
@@ -62,7 +59,7 @@
         </form>
         <section id="pdf-preview-panel" class="pdf-preview-panel" aria-labelledby="pdf-preview-heading">
             <div class="pdf-preview-heading">
-                <div><h2 id="pdf-preview-heading">Vista previa PDF</h2><p class="field-hint" data-pdf-status role="status" aria-live="polite">Aún no has generado una vista previa.</p></div>
+                <div><h2 id="pdf-preview-heading">Vista previa PDF</h2><p class="document-status" data-pdf-status data-state="empty" role="status" aria-live="polite">Sin vista previa</p></div>
                 <button class="button button-secondary button-small" type="button" data-pdf-download disabled>Descargar PDF</button>
             </div>
             <div class="pdf-preview-surface" data-pdf-surface aria-busy="false">
@@ -75,6 +72,21 @@
             <p class="field-hint">Usa los controles del visor para recorrer páginas, ampliar o imprimir. Si tu navegador no muestra el PDF, puedes descargarlo.</p>
         </section>
     </div>
+    <details class="document-notes" data-draft-notes>
+        <summary><span>Notas internas</span><small>Solo para uso interno. No se incluyen en el PDF.</small><span class="field-error" data-draft-notes-error hidden></span></summary>
+        <div class="field document-notes-content">
+            <label for="draft-notes">Notas internas (opcional)</label>
+            <textarea id="draft-notes" name="notes" rows="3" maxlength="5000" aria-describedby="draft-notes-help draft-notes-error">{{ "\n".$document->notes }}</textarea>
+            <p id="draft-notes-help" class="field-hint">Hasta 5000 caracteres. Se guardan con el borrador.</p>
+            <p id="draft-notes-error" class="field-hint" data-draft-field-error="notes" hidden></p>
+        </div>
+    </details>
+    <p class="field-hint document-future">El borrador es editable y la vista previa PDF es temporal. Las versiones definitivas conservarán una copia fija del contenido y su PDF; aún no están disponibles.</p>
+    <button type="button" data-draft-leave-trigger data-modal-open="draft-leave-dialog" hidden tabindex="-1">Confirmar salida</button>
+    <x-admin.confirm-dialog id="draft-leave-dialog" standalone variant="warning" title="¿Salir sin guardar?"
+        message="Los cambios que no hayas guardado se perderán al volver al listado."
+        consequence="Si ya enviaste un guardado, esa solicitud podría completarse."
+        cancel-label="Seguir editando" confirm-label="Salir sin guardar" />
 </div>
 @endsection
 

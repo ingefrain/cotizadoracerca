@@ -12,6 +12,7 @@ use Database\Seeders\FormattedDocumentPermissionSeeder;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Tests\Feature\Concerns\InteractsWithBaseAdmin;
 use Tests\TestCase;
 
@@ -230,5 +231,45 @@ class FormattedDocumentTest extends TestCase
         $this->putJson(route('admin.pdf.update', $document), $this->payload(), $headers)->assertOk();
         $this->assertSame(1, AdminAuditEvent::where('entity_type', 'formatted_document')->count());
         $this->assertNull($document->fresh()->updated_by);
+    }
+
+    public function test_new_and_existing_documents_share_editor_but_show_their_context(): void
+    {
+        $this->actingAsAdmin();
+        $document = FormattedDocument::factory()->create();
+        $this->get(route('admin.pdf.create'))->assertOk()->assertViewIs('admin.pdf.editor')
+            ->assertSee('Nuevo documento')->assertSee('Crea tu documento, guárdalo como borrador')
+            ->assertSee('Borrador')->assertSee('data-draft-back', false)->assertSee('Salir sin guardar')
+            ->assertSee('Sin guardar')->assertSee('Sin vista previa');
+        $this->get(route('admin.pdf.edit', $document))->assertOk()->assertViewIs('admin.pdf.editor')
+            ->assertSee('Editar documento')->assertSee($document->title)
+            ->assertSee('Puedes modificar el borrador')->assertSee('Guardado')
+            ->assertSee('data-draft-notes', false)->assertSee('data-draft-notes-error', false)
+            ->assertSee('aria-describedby="draft-notes-help draft-notes-error"', false)
+            ->assertSee('aún no están disponibles');
+    }
+
+    public function test_information_is_a_readable_summary_and_source_is_not_a_form_control(): void
+    {
+        $this->actingAsAdmin();
+        $document = FormattedDocument::factory()->create(['notes' => "Nota\n<script>unsafe()</script>"]);
+        $this->get(route('admin.pdf.show', $document))->assertOk()
+            ->assertSee('Borrador')->assertSee('Información general')->assertSee('Consultar Markdown guardado')
+            ->assertSee('Markdown guardado, solo consulta')->assertSee($document->uuid)
+            ->assertSee('Contenido de consulta, sin controles de edición.')
+            ->assertDontSee('<textarea', false)->assertDontSee('<script>unsafe()', false)
+            ->assertDontSee('Generar versión definitiva')->assertDontSee('Ver PDF histórico');
+    }
+
+    public function test_list_labels_drafts_without_persisted_status_or_unavailable_filters(): void
+    {
+        $this->actingAsAdmin();
+        $document = FormattedDocument::factory()->create();
+        $response = $this->get(route('admin.pdf.index'))->assertOk()
+            ->assertSee('Borrador')->assertSee('Última modificación')->assertSee('Nuevo documento')
+            ->assertSee('Abrir/editar: '.$document->title)->assertSee('Información: '.$document->title)
+            ->assertDontSee('Todos los estados')->assertDontSee('Buscar por título');
+        $this->assertStringNotContainsString('<th>Creación</th>', $response->getContent());
+        $this->assertFalse(Schema::hasColumn('formatted_documents', 'status'));
     }
 }

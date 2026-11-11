@@ -10,11 +10,18 @@
     const status = root.querySelector('[data-draft-status]');
     const error = root.querySelector('[data-draft-error]');
     const message = root.querySelector('[data-draft-error-message]');
+    const notes = root.querySelector('[data-draft-notes]');
+    const notesError = root.querySelector('[data-draft-notes-error]');
+    const back = root.querySelector('[data-draft-back]');
+    const leaveDialog = root.querySelector('#draft-leave-dialog');
+    const leaveTrigger = root.querySelector('[data-draft-leave-trigger]');
     let saved = JSON.parse(root.querySelector('[data-draft-initial]').textContent);
     let exists = root.dataset.saved === 'true';
     let canSave = true;
     let saving = false;
     let watching = false;
+    let saveFailed = false;
+    let leavingRequested = false;
     // Textareas normalize CRLF to LF. Retain the original bytes when a field is unchanged.
     const normalized = value => value.replace(/\r\n?/g, '\n');
     Object.entries(fields).forEach(([key, input]) => { input.value = saved[key]; });
@@ -29,10 +36,12 @@
     }
     function update() {
         const changed = dirty();
-        status.textContent = saving ? 'Guardando borrador…' : changed ? 'Cambios sin guardar.'
-            : exists ? 'Sin cambios pendientes.' : 'Documento nuevo, aún sin guardar.';
+        const state = saving ? 'saving' : saveFailed ? 'error' : changed ? 'dirty' : exists ? 'saved' : 'new';
+        status.dataset.state = state;
+        status.textContent = { saving: 'Guardando', error: 'Error al guardar', dirty: 'Cambios sin guardar', saved: 'Guardado', new: 'Sin guardar' }[state];
         button.disabled = saving || !canSave || (exists && !changed);
         button.textContent = saving ? 'Guardando…' : 'Guardar borrador';
+        button.setAttribute('aria-busy', String(saving));
         const needsWarning = changed || saving;
         if (needsWarning !== watching) {
             window[needsWarning ? 'addEventListener' : 'removeEventListener']('beforeunload', warnBeforeLeaving);
@@ -41,6 +50,7 @@
     }
     function clearErrors() {
         error.hidden = true;
+        notesError.hidden = true;
         Object.entries(fields).forEach(([key, input]) => {
             input.removeAttribute('aria-invalid');
             const output = root.querySelector(`[data-draft-field-error="${key}"]`);
@@ -48,10 +58,30 @@
             output.className = 'field-hint';
         });
     }
+    // Reuse the panel's Confirm Dialog for the explicit back action. Browser
+    // beforeunload still protects reload/close and other navigation.
+    back.addEventListener('click', event => {
+        if (event.button > 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        if ((!dirty() && !saving) || typeof leaveDialog.showModal !== 'function') return;
+        event.preventDefault();
+        leavingRequested = true;
+        leaveTrigger.click();
+        leaveDialog._focusReturn = back;
+    });
+    leaveDialog.querySelector('[data-confirm-accept]').addEventListener('click', () => {
+        if (!leavingRequested) return;
+        leavingRequested = false;
+        window.removeEventListener('beforeunload', warnBeforeLeaving);
+        watching = false;
+        window.location.assign(back.href);
+    }, { capture: true });
+    leaveDialog.addEventListener('close', () => { leavingRequested = false; });
+    window.addEventListener('pageshow', event => { if (event.persisted) update(); });
     button.addEventListener('click', async () => {
         if (saving || !canSave) return;
         const snapshot = current();
         clearErrors();
+        saveFailed = false;
         saving = true;
         update();
         const controller = new AbortController();
@@ -73,6 +103,12 @@
                     output.className = 'field-error';
                     output.hidden = false;
                     fields[key].setAttribute('aria-invalid', 'true');
+                    if (key === 'notes') {
+                        notes.open = true;
+                        notesError.textContent = messages.join(' ');
+                        notesError.hidden = false;
+                    }
+                    if (key === 'body_markdown') root.querySelector('[data-pdf-panel="editor"]')?.click();
                     first ||= fields[key];
                 });
                 first?.focus();
@@ -88,11 +124,18 @@
             if (!data.uuid || !data.update_url || !data.edit_url) throw new Error('El servidor no confirmó el guardado. Tu contenido se conserva.');
             saved = snapshot;
             exists = true;
+            root.dataset.saved = 'true';
             canSave = data.can_update;
             root.dataset.saveUrl = data.update_url;
             window.history.replaceState(null, '', data.edit_url);
+            const heading = document.querySelector('.page-heading h1');
+            if (heading) heading.textContent = 'Editar documento';
+            document.title = document.title.replace(/^Nuevo documento/, 'Editar documento');
+            root.querySelector('[data-draft-document-title]').textContent = snapshot.title;
+            root.querySelector('[data-draft-context]').textContent = 'Puedes modificar el borrador, guardar tus cambios y actualizar la vista previa PDF.';
             window.AdminNotify?.show({ type: 'success', message: 'Borrador guardado.' });
         } catch (failure) {
+            saveFailed = true;
             message.textContent = failure.name === 'AbortError'
                 ? 'No se recibió confirmación a tiempo. Tu contenido se conserva; comprueba el listado antes de volver a guardar.'
                 : failure instanceof TypeError ? 'No se pudo conectar con el servidor. Tu contenido se conserva.' : failure.message;
