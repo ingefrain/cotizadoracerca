@@ -32,7 +32,7 @@ return new class extends Migration
             $table->foreignId('effective_user_id')->constrained('users')->restrictOnDelete();
             $table->timestamp('validated_at')->nullable();
             $table->timestamp('applied_at')->nullable();
-            $table->timestamp('expires_at')->index();
+            $table->dateTime('expires_at')->index();
             $table->timestamps();
             $table->index(['created_by', 'effective_user_id', 'id']);
         });
