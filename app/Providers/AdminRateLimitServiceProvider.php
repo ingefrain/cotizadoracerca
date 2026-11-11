@@ -11,6 +11,9 @@ class AdminRateLimitServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        RateLimiter::for('pdf-preview', fn (Request $request) => Limit::perMinute(10)
+            ->by('pdf-preview:user:'.$request->user()?->id));
+
         RateLimiter::for('admin-password', fn (Request $request) => Limit::perMinute(5)
             ->by('admin-password:ip:'.$request->ip()));
     }

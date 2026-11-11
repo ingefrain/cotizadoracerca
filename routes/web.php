@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\MarkdownPreviewController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\OrganizationLogoController;
+use App\Http\Controllers\Admin\PdfPreviewController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\ReportController;
@@ -44,6 +45,9 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     });
 
     Route::middleware(['auth', 'impersonation', 'account.active', 'session.current'])->group(function (): void {
+        Route::get('/pdf-documents', [PdfPreviewController::class, 'index'])->name('pdf.index');
+        Route::post('/pdf-documents/preview', [PdfPreviewController::class, 'render'])
+            ->middleware(['can:pdf.preview', 'throttle:pdf-preview'])->name('pdf.preview');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         foreach (array_keys(config('admin_reports.reports')) as $key) {
             Route::get('/reports/'.$key, [ReportController::class, 'show'])

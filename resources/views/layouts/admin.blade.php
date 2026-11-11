@@ -10,6 +10,7 @@
     <x-branding-favicon :logo="$branding->logo" />
     <title>@yield('title', 'Resumen') · {{ $branding->displayName() }}</title>
     <link rel="stylesheet" href="{{ asset('assets/base-admin/admin.css') }}?v={{ filemtime(public_path('assets/base-admin/admin.css')) }}">
+    @stack('admin-styles')
 </head>
 <body class="admin-body">
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -25,6 +26,9 @@
                 <span><strong>{{ $branding->displayName() }}</strong><small>Administración</small></span>
             </a>
             <nav class="side-navigation" aria-label="Principal">
+                @if(app(\App\Support\PdfPreviewAccess::class)->allows($navigationUser))
+                    <a class="side-link {{ request()->routeIs('admin.pdf.*') ? 'is-active' : '' }}" href="{{ route('admin.pdf.index') }}" @if(request()->routeIs('admin.pdf.*')) aria-current="page" @endif>Documentos PDF</a>
+                @endif
                 @if($navigationCan('dashboard.view'))
                     <a class="side-link {{ request()->routeIs('admin.dashboard') ? 'is-active' : '' }}" href="{{ route('admin.dashboard') }}" @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif>Resumen</a>
                 @endif

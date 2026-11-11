@@ -1,0 +1,120 @@
+/*
+ * Acerca editorial styles for mPDF 8.3.1, loaded with HEADER_CSS.
+ * Scope: wrap MarkdownRenderer HTML in .md-body; exclude the page header.
+ * Palette uses literals because mPDF does not resolve CSS custom properties.
+ * primary #674EA7; primary-dark #4B3A86; primary-soft #F1EDFA;
+ * surface-soft #F9F7FD; border #E4DDF3; text-primary #1E1A35;
+ * text-body #3C3A52; white #FFFFFF.
+ */
+.md-body {
+    font-family: freesans;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #3C3A52;
+    margin-left: 0.5986mm;
+    margin-right: 2.1mm;
+}
+
+.md-body h1 {
+    font-family: freesans;
+    font-size: 24pt;
+    font-weight: bold;
+    line-height: 1.15;
+    color: #1E1A35;
+    margin: 0 0 5mm;
+    page-break-after: avoid;
+}
+
+.md-body h2 {
+    font-family: freesans;
+    font-size: 13pt;
+    font-weight: bold;
+    line-height: 1.25;
+    color: #674EA7;
+    margin: 5mm 0 3mm;
+    padding-bottom: 1.8mm;
+    border-bottom: 0.25mm solid #E4DDF3;
+    page-break-after: avoid;
+}
+
+.md-body h3 {
+    font-family: freesans;
+    font-size: 11.5pt;
+    font-weight: bold;
+    line-height: 1.3;
+    color: #4B3A86;
+    margin: 3.5mm 0 2mm;
+    page-break-after: avoid;
+}
+
+.md-body p {
+    margin: 0 0 3mm;
+}
+
+.md-body ul, .md-body ol {
+    margin: 0 0 3mm 6mm;
+    padding: 0;
+}
+
+.md-body li {
+    margin: 0 0 1mm;
+}
+
+.md-body strong {
+    font-weight: bold;
+    color: #1E1A35;
+}
+
+.md-body em {
+    font-style: italic;
+}
+
+.md-body a {
+    color: #4B3A86;
+    text-decoration: underline;
+}
+
+.md-body table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 0.25mm solid #E4DDF3;
+    margin: 2mm 0 4mm;
+    font-family: freesans;
+    font-size: 9.5pt;
+    line-height: 1.4;
+    color: #3C3A52;
+    background-color: #FFFFFF;
+}
+
+/*
+ * mPDF 8.3.1: keep the first three data rows together, not the entire table.
+ * Its row indices include the header at 0; rows 0, 1 and 2 avoid a break after.
+ * Load with use_kwt=true so a preceding heading moves with this initial group,
+ * and shrink_tables_to_fit=1 to retain the table's font size in normal flow.
+ * Longer tables remain breakable; oversized rows/groups still need review.
+ */
+.md-body tr:nth-child(-n+2) {
+    page-break-after: avoid;
+}
+
+/* Verified with mPDF's row indices: first data row white, second soft. */
+.md-body tr:nth-child(even) {
+    background-color: #F9F7FD;
+}
+
+.md-body tr:nth-child(odd) {
+    background-color: #FFFFFF;
+}
+
+.md-body th, .md-body td {
+    border-bottom: 0.25mm solid #E4DDF3;
+    padding: 2.5mm 3mm;
+    vertical-align: top;
+}
+
+.md-body th {
+    background-color: #F1EDFA;
+    color: #4B3A86;
+    font-weight: bold;
+    text-align: left;
+}

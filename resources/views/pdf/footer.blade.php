@@ -1,0 +1,1 @@
+<table width="100%" cellpadding="0" cellspacing="0" style="font-family:freesans;font-size:7.5pt;color:#3C3A52;border-top:0.25mm solid #E4DDF3;"><tr><td style="padding-top:2mm;">ACERCA | {{ $label }}</td><td style="padding-top:2mm;text-align:right;">Página {PAGENO}</td></tr></table>

@@ -7,6 +7,7 @@ class BasePermissions
     /** @var array<string, string> */
     public const DEFINITIONS = [
         'dashboard.view' => 'Ver el resumen administrativo',
+        'pdf.preview' => 'Editar Markdown y generar vistas previas PDF',
         'reports.view' => 'Consultar reportes administrativos',
         'reports.export' => 'Exportar reportes administrativos',
         'imports.view' => 'Consultar importaciones propias',
