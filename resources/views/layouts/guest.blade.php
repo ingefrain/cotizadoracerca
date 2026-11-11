@@ -6,6 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php($branding = \App\Models\ApplicationBranding::current())
+    <x-branding-favicon :logo="$branding->logo" />
     <title>@yield('title', 'Acceso') · {{ $branding->displayName() }}</title>
     <link rel="stylesheet" href="{{ asset('assets/base-admin/admin.css') }}?v={{ filemtime(public_path('assets/base-admin/admin.css')) }}">
 </head>

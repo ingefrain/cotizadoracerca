@@ -10,6 +10,7 @@ use App\Models\Document;
 use App\Models\Location;
 use App\Models\Organization;
 use App\Models\User;
+use App\Observers\BrandingFaviconObserver;
 use App\Policies\CatalogItemPolicy;
 use App\Policies\CatalogPolicy;
 use App\Policies\DocumentPolicy;
@@ -36,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Document::observe(BrandingFaviconObserver::class);
+
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(Catalog::class, CatalogPolicy::class);
         Gate::policy(CatalogItem::class, CatalogItemPolicy::class);

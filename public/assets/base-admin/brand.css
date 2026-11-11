@@ -1,0 +1,52 @@
+/* Acerca editorial palette. Shared by the static admin UI and the Vite bundle. */
+:root {
+    --brand-primary: #674EA7;
+    --brand-primary-dark: #4B3A86;
+    --brand-primary-soft: #F1EDFA;
+    --brand-surface-soft: #F9F7FD;
+    --brand-border: #E4DDF3;
+    --brand-lavender: #CFC5E9;
+    --text-primary: #1E1A35;
+    --text-body: #3C3A52;
+    --text-muted: #77758F;
+    --white: #FFFFFF;
+
+    /* Small text and control boundaries need more contrast than decorative tones. */
+    --text-muted-accessible: #6B687F;
+    --control-border: #887C9D;
+    --focus-ring: var(--brand-primary);
+    --shadow-rgb: 30 26 53;
+    --white-rgb: 255 255 255;
+
+    /* Semantic status colors remain independent from the corporate accent. */
+    --success: #216C50;
+    --success-text: #245B42;
+    --success-soft: #EAF7EF;
+    --success-border: #B8DDC9;
+    --danger: #A33B3B;
+    --danger-strong: #8F3131;
+    --danger-text: #842E2B;
+    --danger-soft: #FFEFEC;
+    --danger-surface: #FFF9F8;
+    --danger-border: #E2BDBD;
+    --error-soft: #FFF0EE;
+    --error-border: #E6C0BD;
+    --warning-text: #70551B;
+    --warning-soft: #FFF8E5;
+    --warning-border: #EAD7A7;
+    --info-text: var(--brand-primary-dark);
+    --info-soft: var(--brand-primary-soft);
+    --info-border: var(--brand-lavender);
+
+    /* Compatibility aliases for inherited components and Chart.js. */
+    --ink: var(--text-primary);
+    --muted: var(--text-muted-accessible);
+    --line: var(--brand-border);
+    --paper: var(--white);
+    --canvas: var(--brand-surface-soft);
+    --navy: var(--brand-primary-dark);
+    --teal: var(--brand-primary);
+    --teal-dark: var(--brand-primary-dark);
+    --surface: var(--white);
+    --border: var(--brand-border);
+}

@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('assets/base-admin/markdown.css') }}?v={{ filemtime(public_path('assets/base-admin/markdown.css')) }}">
     @php($branding = \App\Models\ApplicationBranding::current())
+    <x-branding-favicon :logo="$branding->logo" />
     <title>@yield('title', 'Resumen') · {{ $branding->displayName() }}</title>
     <link rel="stylesheet" href="{{ asset('assets/base-admin/admin.css') }}?v={{ filemtime(public_path('assets/base-admin/admin.css')) }}">
 </head>
